@@ -40,9 +40,11 @@ packer init .
 packer build aws-amazonlinux.pkr.hcl
 ```
 
+### Upon running the build command, you should see the build status complete and return your new private ami id.
+
 ![Packer build output](screenshots/packer-build.png)
 
-### Verify in AWS Console that you have successfully created the image
+### Verify in the AWS Console that you have successfully created the image
 
 ![Packer AMI](screenshots/packer-ami.png)
 
