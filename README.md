@@ -6,6 +6,7 @@ IAC project using Packer and Terraform to build a custom AWS AMI and provision a
 
 1. [Prerequisites](#prerequisites)
 2. [Building the AMI with Packer](#part-1-building-the-ami-with-packer)
+3. [Provisioning Infrastructure with Terraform](#part-2-provisioning-infrastructure-with-terraform)
 
 > **Note:** Follow the sections in order to run this project successfully.
 
@@ -49,3 +50,72 @@ packer build aws-amazonlinux.pkr.hcl
 ![Packer AMI](screenshots/packer-ami.png)
 
 ## Part 2: Provisioning Infrastructure with Terraform
+
+### What gets created
+
+- VPC with public and private subnets across 3 availability zones
+- NAT gateway so private instances can reach the internet outbound
+- Bastion host in the public subnet (SSH restricted to your IP)
+- 6 EC2 instances in the private subnets using the Packer AMI from Part 1
+
+### Setup
+
+Create a `terraform/terraform.tfvars` file with your values:
+
+```hcl
+ami_id = "ami-xxxxxxxxxxxxxxxxx"  # AMI ID from Part 1
+my_ip  = "x.x.x.x/32"            # Your public IP
+```
+
+### How to run
+
+```bash
+cd terraform/
+terraform init
+terraform plan
+terraform apply
+```
+
+### Output
+
+After apply, Terraform outputs the bastion public IP and all private instance IPs.
+
+![Terraform output](screenshots/terraform-output.png)
+
+### Connecting to instances
+
+Load your SSH key and connect to the bastion with agent forwarding:
+
+```bash
+ssh-add ~/.ssh/tf-packer
+ssh -A ec2-user@<bastion_public_ip>
+```
+
+From the bastion, SSH into any private instance:
+
+```bash
+ssh ec2-user@<private_instance_ip>
+```
+
+The screenshots below show connecting to the bastion, hopping to a private instance, and exiting both.
+
+![SSH hop](screenshots/ssh-hop.png)
+
+**Expected behaviors:**
+
+- SSH into the bastion is only allowed from your IP
+- SSH into private instances is only allowed from the bastion
+- Private instances cannot SSH into each other
+- Private instances can reach the internet outbound via the NAT gateway
+
+### AWS Console
+
+![EC2 instances](screenshots/ec2-instances.png)
+
+### Teardown
+
+```bash
+terraform destroy
+```
+
+![Terraform Destroy](screenshots/terraform-destroy.png)
