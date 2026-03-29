@@ -32,7 +32,7 @@ ssh-keygen -t rsa -C "your_email@example.com" -f ~/.ssh/tf-packer
 
 ### How to build
 
-#### Note, insert the location of your tf-packer.pub key on your machine in the source provisioner of `aws-amazonlinx.pkr.hcl`
+#### Note, insert the location of your tf-packer.pub key on your machine in the source provisioner of `aws-amazonlinux.pkr.hcl`
 
 ```bash
 cd packer/

@@ -9,7 +9,7 @@ packer {
 
 source "amazon-ebs" "amazon-linux" {
   ami_name      = "packer-docker-linux"
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
   region        = "us-east-1"
   source_ami = "ami-02dfbd4ff395f2a1b"
   ssh_username = "ec2-user"
