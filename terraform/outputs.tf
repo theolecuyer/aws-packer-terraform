@@ -5,3 +5,7 @@ output "bastion_public_ip" {
 output "private_instance_ips" {
   value = aws_instance.private[*].private_ip
 }
+
+output "monitoring_instance_ip" {
+  value = aws_instance.monitoring-instance.private_ip
+}

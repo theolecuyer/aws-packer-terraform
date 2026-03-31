@@ -9,3 +9,10 @@ variable "my_ip" {
   default = "0.0.0.0/32"
   description = "IP address for BastionSSH Access"
 }
+
+variable "grafana_admin_password" {
+  type      = string
+  default   = "admin"
+  sensitive = true
+  description = "Grafana admin password"
+}
