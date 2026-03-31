@@ -30,6 +30,15 @@ module "bastion-sg" {
         }
     ]
 
+    ingress_with_source_security_group_id = [
+        {
+            from_port                = 9100
+            to_port                  = 9100
+            protocol                 = "tcp"
+            source_security_group_id = module.monitoring-sg.security_group_id
+        }
+    ]
+
     egress_rules = ["all-all"]
 }
 
@@ -47,6 +56,12 @@ module "private-sg" {
             to_port                  = 22
             protocol                 = "tcp"
             source_security_group_id = module.bastion-sg.security_group_id
+        },
+        {
+            from_port                = 9100
+            to_port                  = 9100
+            protocol                 = "tcp"
+            source_security_group_id = module.monitoring-sg.security_group_id
         }
     ]
 
