@@ -1,12 +1,13 @@
 # aws-packer-terraform
 
-IAC project using Packer and Terraform to build a custom AWS AMI and provision a VPC, subnets, bastion host, and private EC2 instances.
+IAC project using Packer and Terraform to build a custom AWS AMI and provision a VPC, subnets, bastion host, and private EC2 instances with full infrastructure monitoring via Prometheus and Grafana.
 
 ## Table of Contents
 
 1. [Prerequisites](#prerequisites)
 2. [Building the AMI with Packer](#part-1-building-the-ami-with-packer)
 3. [Provisioning Infrastructure with Terraform](#part-2-provisioning-infrastructure-with-terraform)
+4. [Monitoring with Prometheus and Grafana](#part-3-monitoring-with-prometheus-and-grafana)
 
 > **Note:** Follow the sections in order to run this project successfully.
 
@@ -63,8 +64,9 @@ packer build aws-amazonlinux.pkr.hcl
 Create a `terraform/terraform.tfvars` file with your values:
 
 ```hcl
-ami_id = "ami-xxxxxxxxxxxxxxxxx"  # AMI ID from Part 1
-my_ip  = "x.x.x.x/32"            # Your public IP
+ami_id                 = "ami-xxxxxxxxxxxxxxxxx"  # AMI ID from Part 1
+my_ip                  = "x.x.x.x/32"            # Your public IP
+grafana_admin_password = "yourpassword"           # Grafana login password
 ```
 
 ### How to run
@@ -119,3 +121,48 @@ terraform destroy
 ```
 
 ![Terraform Destroy](screenshots/terraform-destroy.png)
+
+## Part 3: Monitoring with Prometheus and Grafana
+
+### What gets created
+
+- A monitoring EC2 instance in the private subnet running Prometheus and Grafana via Docker
+- Prometheus scrapes node_exporter metrics (CPU, memory, disk) from all 8 EC2 instances every 15 seconds
+- Grafana is pre-configured with Prometheus as a data source and the Node Exporter Full dashboard
+
+### What the AMI includes (updated)
+
+The Packer AMI now also includes:
+
+- node_exporter installed and enabled as a systemd service on port 9100
+
+This runs on every instance including the bastion, private instances, and the monitoring instance itself.
+
+### Connecting to Prometheus and Grafana
+
+Both services run in the private subnet with no public access. Access them via SSH tunnel from your local machine:
+
+```bash
+ssh-add ~/.ssh/tf-packer
+ssh -A -J ec2-user@<bastion_public_ip> \
+  -L 9090:<monitoring_instance_ip>:9090 \
+  -L 3000:<monitoring_instance_ip>:3000 \
+  ec2-user@<monitoring_instance_ip> -N
+```
+
+Then open in your browser:
+
+- Prometheus: [http://localhost:9090](http://localhost:9090)
+- Grafana: [http://localhost:3000](http://localhost:3000) (login: `admin` / your configured password)
+
+### Verifying Prometheus targets
+
+Navigate to [http://localhost:9090/targets](http://localhost:9090/targets) to confirm all 8 instances are being scraped and show as UP.
+
+![Prometheus targets](screenshots/prometheus-targets.png)
+
+### Grafana Dashboard
+
+The Node Exporter Full dashboard is automatically provisioned on startup. Navigate to Dashboards in the Grafana sidebar to view CPU and memory utilization per instance. Use the instance dropdown at the top to switch between all 8 EC2s.
+
+![Grafana dashboard](screenshots/grafana-dashboard.png)
