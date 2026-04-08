@@ -9,5 +9,5 @@ ${ip} ansible_user=ec2-user
 %{ endfor ~}
 
 [all:vars]
-ansible_ssh_private_key_file=/root/.ssh/tf-packer
+ansible_ssh_private_key_file=/home/ubuntu/.ssh/tf-packer
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
