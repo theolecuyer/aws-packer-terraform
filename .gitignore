@@ -37,3 +37,8 @@ override.tf.json
 terraform.rc
 
 .terraform.lock.hcl
+
+# Ignore Ansible files
+hosts.ini
+vault_pass
+vault.yml

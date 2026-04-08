@@ -47,6 +47,12 @@ module "private-sg" {
             to_port                  = 22
             protocol                 = "tcp"
             source_security_group_id = module.bastion-sg.security_group_id
+        },
+        {
+            from_port                = 22
+            to_port                  = 22
+            protocol                 = "tcp"
+            source_security_group_id = module.private-sg.security_group_id
         }
     ]
 
@@ -54,7 +60,7 @@ module "private-sg" {
 }
 
 resource "aws_instance" "bastion" {
-    ami                    = var.ami_id
+    ami                    = var.linux_ami_id
     instance_type          = "t3.micro"
     subnet_id              = module.vpc.public_subnets[0]
     vpc_security_group_ids = [module.bastion-sg.security_group_id]
@@ -65,14 +71,28 @@ resource "aws_instance" "bastion" {
     }
 }
 
-resource "aws_instance" "private" {
-    count                  = 6
-    ami                    = var.ami_id
+resource "aws_instance" "amazon-linux" {
+    count                  = 3
+    ami                    = var.linux_ami_id
     instance_type          = "t3.micro"
     subnet_id              = module.vpc.private_subnets[count.index % 3]
     vpc_security_group_ids = [module.private-sg.security_group_id]
 
     tags = {
-        Name = "private-${count.index + 1}"
+        Name = "amazon-linux-${count.index + 1}"
+        OS = "amazon"
+    }
+}
+
+resource "aws_instance" "ubuntu" {
+    count                  = 3
+    ami                    = var.ubuntu_ami_id
+    instance_type          = "t3.micro"
+    subnet_id              = module.vpc.private_subnets[count.index % 3]
+    vpc_security_group_ids = [module.private-sg.security_group_id]
+
+    tags = {
+        Name = "ubuntu-${count.index + 1}"
+        OS = "ubuntu"
     }
 }

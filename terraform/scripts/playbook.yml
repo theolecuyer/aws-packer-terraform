@@ -1,0 +1,80 @@
+---
+- name: Configure Amazon Linux instances
+  hosts: amazon
+  become: true
+  gather_facts: false
+
+  tasks:
+      - name: Update all packages
+        yum:
+            name: "*"
+            state: latest
+
+      - name: Ensure Docker is latest
+        yum:
+            name: docker
+            state: latest
+
+      - name: Ensure Docker service is running
+        service:
+            name: docker
+            state: started
+            enabled: yes
+
+      - name: Get Docker version
+        command: docker --version
+        register: docker_version
+        changed_when: false
+
+      - name: Report Docker version
+        debug:
+            msg: "Docker on {{ inventory_hostname }}: {{ docker_version.stdout }}"
+
+      - name: Get disk usage
+        command: df -h
+        register: disk_usage
+        changed_when: false
+
+      - name: Report disk usage
+        debug:
+            msg: "{{ disk_usage.stdout_lines }}"
+
+- name: Configure Ubuntu instances
+  hosts: ubuntu
+  become: true
+  gather_facts: false
+
+  tasks:
+      - name: Update apt cache and upgrade packages
+        apt:
+            update_cache: yes
+            upgrade: dist
+
+      - name: Ensure Docker is latest
+        apt:
+            name: docker.io
+            state: latest
+
+      - name: Ensure Docker service is running
+        service:
+            name: docker
+            state: started
+            enabled: yes
+
+      - name: Get Docker version
+        command: docker --version
+        register: docker_version
+        changed_when: false
+
+      - name: Report Docker version
+        debug:
+            msg: "Docker on {{ inventory_hostname }}: {{ docker_version.stdout }}"
+
+      - name: Get disk usage
+        command: df -h
+        register: disk_usage
+        changed_when: false
+
+      - name: Report disk usage
+        debug:
+            msg: "{{ disk_usage.stdout_lines }}"
